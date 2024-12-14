@@ -2,10 +2,8 @@ package tasks;
 
 import common.Area;
 import common.Person;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /*
 Имеются
@@ -19,6 +17,16 @@ public class Task6 {
   public static Set<String> getPersonDescriptions(Collection<Person> persons,
                                                   Map<Integer, Set<Integer>> personAreaIds,
                                                   Collection<Area> areas) {
-    return new HashSet<>();
+    // Создаем отображение ID региона в его имя
+    Map<Integer, String> areaIdToName = areas.stream()
+            .collect(Collectors.toMap(Area::getId, Area::getName));
+
+    // Генерируем строки "Имя - регион" через стримы
+    return persons.stream()
+            .flatMap(person -> personAreaIds.getOrDefault(person.id(), Collections.emptySet()).stream()
+                    .map(areaId -> areaIdToName.get(areaId))
+                    .filter(Objects::nonNull)
+                    .map(areaName -> person.firstName() + " - " + areaName))
+            .collect(Collectors.toSet());
   }
 }

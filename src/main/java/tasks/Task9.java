@@ -21,21 +21,25 @@ P.P.S Здесь ваши правки необходимо прокоммент
  */
 public class Task9 {
 
-  private long count;
+  /*private long count; - имеется встроенный счетчик*/
 
   // Костыль, эластик всегда выдает в топе "фальшивую персону".
   // Конвертируем начиная со второй
   public List<String> getNames(List<Person> persons) {
-    if (persons.size() == 0) {
+    if (persons == null || persons.isEmpty()) { //заменили условие в if, убрали фальш - персону
       return Collections.emptyList();
     }
-    persons.remove(0);
-    return persons.stream().map(Person::firstName).collect(Collectors.toList());
+    //persons.remove(0); - используем skip
+    return persons.stream()
+            .skip(1)
+            .map(Person::firstName)
+            .collect(Collectors.toList());
   }
 
   // Зачем-то нужны различные имена этих же персон (без учета фальшивой разумеется)
   public Set<String> getDifferentNames(List<Person> persons) {
-    return getNames(persons).stream().distinct().collect(Collectors.toSet());
+    return getNames(persons).stream()
+            .collect(Collectors.toSet()); //distinct не нужен, Set - всегда уникален
   }
 
   // Тут фронтовая логика, делаем за них работу - склеиваем ФИО
@@ -68,31 +72,31 @@ public class Task9 {
 
   // есть ли совпадающие в двух коллекциях персоны?
   public boolean hasSamePersons(Collection<Person> persons1, Collection<Person> persons2) {
-    boolean has = false;
-    for (Person person1 : persons1) {
-      for (Person person2 : persons2) {
-        if (person1.equals(person2)) {
-          has = true;
-        }
-      }
+    if (persons1 == null || persons2 == null) {
+      return false;
     }
-    return has;
+    Set<Person> personSet = new HashSet<>(persons1); //преобразуем одну коллекцию в set для оптимиации поиска (О(1) вместо O(n))
+    return persons2.stream()
+            .anyMatch(personSet::contains);
   }
 
   // Посчитать число четных чисел
   public long countEven(Stream<Integer> numbers) {
-    count = 0;
-    numbers.filter(num -> num % 2 == 0).forEach(num -> count++);
-    return count;
+    if (numbers == null){
+      return  0;
+    }
+    return numbers.filter(num -> num % 2 == 0).count(); //убрали глобальную переменную count
   }
 
   // Загадка - объясните почему assert тут всегда верен
   // Пояснение в чем соль - мы перетасовали числа, обернули в HashSet, а toString() у него вернул их в сортированном порядке
+  //toString для List и Set сохраняет порядок отображение элементов,
+  // т.к. HashSet при создании на базе List охраняет порядок добавления
   void listVsSet() {
     List<Integer> integers = IntStream.rangeClosed(1, 10000).boxed().collect(Collectors.toList());
     List<Integer> snapshot = new ArrayList<>(integers);
-    Collections.shuffle(integers);
-    Set<Integer> set = new HashSet<>(integers);
+    Collections.shuffle(integers); //перемешали
+    Set<Integer> set = new HashSet<>(integers);//LinkedHashSet сохранил порядок добавления
     assert snapshot.toString().equals(set.toString());
   }
 }

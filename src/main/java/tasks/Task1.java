@@ -4,14 +4,16 @@ import common.Person;
 import common.PersonService;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /*
 Задача 1
 Метод на входе принимает List<Integer> id людей, ходит за ними в сервис
 (он выдает несортированный Set<Person>, внутренняя работа сервиса неизвестна)
 нужно их отсортировать в том же порядке, что и переданные id.
-Оценить асимптотику работы
+Оценить асимптотику работы - ассимптотика работы О(m+n), где мы проходим по Set <Person> длинной n, и выполняем поиск в Map из m элементов списка List personIds
  */
 public class Task1 {
 
@@ -23,6 +25,11 @@ public class Task1 {
 
   public List<Person> findOrderedPersons(List<Integer> personIds) {
     Set<Person> persons = personService.findPersons(personIds);
-    return Collections.emptyList();
+    Map <Integer, Person> sort = persons.stream()
+            .collect(Collectors.toMap(Person::id, person -> person));
+    return personIds.stream()
+            .map(sort::get)
+            .collect(Collectors.toList());
   }
 }
+
