@@ -14,6 +14,10 @@ import java.util.stream.Collectors;
  */
 public class Task6 {
 
+  private static String formatDescription(Person person, String areaName) {
+    return person.firstName() + " - " + areaName;
+  }
+
   public static Set<String> getPersonDescriptions(Collection<Person> persons,
                                                   Map<Integer, Set<Integer>> personAreaIds,
                                                   Collection<Area> areas) {
@@ -26,7 +30,10 @@ public class Task6 {
             .flatMap(person -> personAreaIds.getOrDefault(person.id(), Collections.emptySet()).stream()
                     .map(areaId -> areaIdToName.get(areaId))
                     .filter(Objects::nonNull)
-                    .map(areaName -> person.firstName() + " - " + areaName))
+                    .map(areaName -> formatDescription(person, areaName))
+            )
             .collect(Collectors.toSet());
   }
+
+
 }

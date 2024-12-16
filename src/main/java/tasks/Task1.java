@@ -25,10 +25,10 @@ public class Task1 {
 
   public List<Person> findOrderedPersons(List<Integer> personIds) {
     Set<Person> persons = personService.findPersons(personIds);
-    Map <Integer, Person> sort = persons.stream()
+    Map <Integer, Person> idPersonMap = persons.stream()
             .collect(Collectors.toMap(Person::id, person -> person));
     return personIds.stream()
-            .map(sort::get)
+            .map(idPersonMap::get)
             .collect(Collectors.toList());
   }
 }
