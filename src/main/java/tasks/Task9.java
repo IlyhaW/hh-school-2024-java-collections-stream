@@ -1,14 +1,8 @@
 package tasks;
 
 import common.Person;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -21,38 +15,28 @@ P.P.S Здесь ваши правки необходимо прокоммент
  */
 public class Task9 {
 
-  private long count;
+  /*private long count; - имеется встроенный счетчик*/
 
   // Костыль, эластик всегда выдает в топе "фальшивую персону".
   // Конвертируем начиная со второй
   public List<String> getNames(List<Person> persons) {
-    if (persons.size() == 0) {
-      return Collections.emptyList();
-    }
-    persons.remove(0);
-    return persons.stream().map(Person::firstName).collect(Collectors.toList());
+    //persons.remove(0); - используем skip, дабы не изменять поток
+    return persons.stream()
+            .skip(1)
+            .map(Person::firstName)
+            .collect(Collectors.toList());
   }
 
   // Зачем-то нужны различные имена этих же персон (без учета фальшивой разумеется)
   public Set<String> getDifferentNames(List<Person> persons) {
-    return getNames(persons).stream().distinct().collect(Collectors.toSet());
+    return new HashSet<>(getNames(persons)); //distinct не нужен, Set - всегда уникален
   }
 
   // Тут фронтовая логика, делаем за них работу - склеиваем ФИО
   public String convertPersonToString(Person person) {
-    String result = "";
-    if (person.secondName() != null) {
-      result += person.secondName();
-    }
-
-    if (person.firstName() != null) {
-      result += " " + person.firstName();
-    }
-
-    if (person.secondName() != null) {
-      result += " " + person.secondName();
-    }
-    return result;
+    return Stream.of(person.secondName(), person.firstName(), person.middleName())
+            .filter(Objects::nonNull)
+            .collect(Collectors.joining(" "));
   }
 
   // словарь id персоны -> ее имя
@@ -68,31 +52,31 @@ public class Task9 {
 
   // есть ли совпадающие в двух коллекциях персоны?
   public boolean hasSamePersons(Collection<Person> persons1, Collection<Person> persons2) {
-    boolean has = false;
-    for (Person person1 : persons1) {
-      for (Person person2 : persons2) {
-        if (person1.equals(person2)) {
-          has = true;
-        }
-      }
-    }
-    return has;
+    Set<Person> personSet = new HashSet<>(persons1); //преобразуем одну коллекцию в set для оптимиации поиска (О(1) вместо O(n))
+    return persons2.stream()
+            .anyMatch(personSet::contains);
   }
 
   // Посчитать число четных чисел
   public long countEven(Stream<Integer> numbers) {
-    count = 0;
-    numbers.filter(num -> num % 2 == 0).forEach(num -> count++);
-    return count;
+    return numbers.filter(num -> num % 2 == 0).count(); //убрали глобальную переменную count
   }
 
   // Загадка - объясните почему assert тут всегда верен
   // Пояснение в чем соль - мы перетасовали числа, обернули в HashSet, а toString() у него вернул их в сортированном порядке
+
+  // Спустя пару бессонных часов я нашел ответ!
+  // Фокус завязан на подкапотном устройстве HashSet
+  // Хеш-функция от целого числа (int) - это само это число, поскольку это простой тип,
+  // Хеш-таблица хранит данные по бакетам, номер которого определяется через хеш функцию,
+  // Исходя из этих двух условий, элементы будут располагаться по возрастанию, несмотря на порядок добавления,
+  // И при проходе toString выдаст нам "сортированный"  список, т.к. HashSet будет проходить по бакетам в порядке возрастания
+
   void listVsSet() {
     List<Integer> integers = IntStream.rangeClosed(1, 10000).boxed().collect(Collectors.toList());
     List<Integer> snapshot = new ArrayList<>(integers);
-    Collections.shuffle(integers);
-    Set<Integer> set = new HashSet<>(integers);
-    assert snapshot.toString().equals(set.toString());
+    Collections.shuffle(integers); //перемешали
+    Set<Integer> set = new HashSet<>(integers);//HashSet не сохранил порядок добавления
+    assert snapshot.toString().equals(set.toString()); //toString возращает отсортированную строку
   }
 }
