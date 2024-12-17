@@ -1,14 +1,8 @@
 package tasks;
 
 import common.Person;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -40,19 +34,9 @@ public class Task9 {
 
   // Тут фронтовая логика, делаем за них работу - склеиваем ФИО
   public String convertPersonToString(Person person) {
-    String result = "";
-    /*if (person.secondName() != null) {
-      result += person.secondName();
-    } - зачем нам два secondName? */
-
-    if (person.firstName() != null) {
-      result += person.firstName(); // Убираем пробел перед именем
-    }
-
-    if (person.secondName() != null) {
-      result += " " + person.secondName();
-    }
-    return result;
+    return Stream.of(person.secondName(), person.firstName(), person.middleName())
+            .filter(Objects::nonNull)
+            .collect(Collectors.joining(" "));
   }
 
   // словарь id персоны -> ее имя
@@ -80,6 +64,14 @@ public class Task9 {
 
   // Загадка - объясните почему assert тут всегда верен
   // Пояснение в чем соль - мы перетасовали числа, обернули в HashSet, а toString() у него вернул их в сортированном порядке
+
+  // Спустя пару бессонных часов я нашел ответ!
+  // Фокус завязан на подкапотном устройстве HashSet
+  // Хеш-функция от целого числа (int) - это само это число, поскольку это простой тип,
+  // Хеш-таблица хранит данные по бакетам, номер которого определяется через хеш функцию,
+  // Исходя из этих двух условий, элементы будут располагаться по возрастанию, несмотря на порядок добавления,
+  // И при проходе toString выдаст нам "сортированный"  список, т.к. HashSet будет проходить по бакетам в порядке возрастания
+
   void listVsSet() {
     List<Integer> integers = IntStream.rangeClosed(1, 10000).boxed().collect(Collectors.toList());
     List<Integer> snapshot = new ArrayList<>(integers);
